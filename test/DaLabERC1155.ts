@@ -82,6 +82,17 @@ describe("DaLabERC1155", function () {
       expect(badge.maxSupply).to.eq(10);
     });
 
+    it("updates only mintable info", async () => {
+      await expect(
+        badgeContract.updateBadgeAttr(1, false, "")
+      ).to.emit(badgeContract, "UpdateBadge");
+      const badge = await badgeContract.badges(1);
+      expect(badge.mintable).to.eq(false);
+      expect(badge.transferable).to.eq(false);
+      expect(badge.tokenURI).to.eq("https://example.com");
+      expect(badge.maxSupply).to.eq(10);
+    });
+
     it("reverts with non existed badge", async () => {
       await expect(
         badgeContract.updateBadgeAttr(0, false, "https//hoge.com")

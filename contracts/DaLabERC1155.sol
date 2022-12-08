@@ -90,8 +90,11 @@ contract DaLabERC1155 is ERC1155, Ownable {
         bool _mintable,
         string memory _tokenURI
     ) public onlyOwner onlyExistBadge(_tokenId) {
+        bytes memory _uri = bytes (_tokenURI);
         badges[_tokenId].mintable = _mintable;
-        badges[_tokenId].tokenURI = _tokenURI;
+        if (_uri.length > 1) {
+            badges[_tokenId].tokenURI = _tokenURI;
+        }
         emit UpdateBadge(_tokenId, _mintable);
     }
 
