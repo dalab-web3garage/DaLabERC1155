@@ -7,17 +7,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract HenkakuBadge is ERC1155, Ownable {
+contract DaLabERC1155 is ERC1155, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     uint256 public immutable tokenAmount = 1;
-    IERC20 public erc20;
-    address public fundsAddress;
 
     struct Badge {
         bool mintable;
         bool transferable;
-        uint256 amount;
         uint256 maxSupply;
         string tokenURI;
         uint256 maxMintPerWallet; // 0 means user can mint how much they want. so no limitation with minting
@@ -26,21 +23,17 @@ contract HenkakuBadge is ERC1155, Ownable {
     mapping(uint256 => Badge) public badges;
     mapping(uint256 => uint256) public totalSupply;
     mapping(address => Badge[]) private userBadges;
-    event WithDraw(address indexed to, address token, uint256 amount);
     event Mint(address indexed minter, uint256 indexed tokenId);
     event MintByAdmin(
         address indexed minter,
         address indexed holder,
         uint256 indexed tokenId
     );
-    event NewBadge(uint256 indexed id, bool mintable, uint256 amount);
+    event NewBadge(uint256 indexed id, bool mintable);
     event UpdateBadge(uint256 indexed id, bool mintable);
     event BurnBadge(uint256 indexed id, address indexed holder);
 
-    constructor(address _erc20, address _fundsAddress) ERC1155("") {
-        setERC20(_erc20);
-        setFundsAddress(_fundsAddress);
-    }
+    constructor() ERC1155("") {}
 
     function getBadges() public view returns (Badge[] memory) {
         Badge[] memory badgeArray = new Badge[](_tokenIds.current());
@@ -84,20 +77,12 @@ contract HenkakuBadge is ERC1155, Ownable {
         _;
     }
 
-    function setERC20(address _addr) public onlyOwner {
-        erc20 = IERC20(_addr);
-    }
-
     function createBadge(Badge memory _badge) public onlyOwner {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         badges[newItemId] = _badge;
         totalSupply[newItemId] = 0;
-        emit NewBadge(newItemId, _badge.mintable, _badge.amount);
-    }
-
-    function setFundsAddress(address _fundsAddress) public onlyOwner {
-        fundsAddress = _fundsAddress;
+        emit NewBadge(newItemId, _badge.mintable);
     }
 
     function updateBadgeAttr(
@@ -116,18 +101,6 @@ contract HenkakuBadge is ERC1155, Ownable {
         notExceedMaxSupply(_tokenId)
         onlyBelowMaxMintPerWallet(msg.sender, _tokenId)
     {
-        require(
-            erc20.balanceOf(msg.sender) >= badges[_tokenId].amount,
-            "INSUFFICIENT BALANCE"
-        );
-        if (badges[_tokenId].amount > 0) {
-            bool success = erc20.transferFrom(
-                msg.sender,
-                address(this),
-                badges[_tokenId].amount
-            );
-            require(success, "TX FAILED");
-        }
         _mint(msg.sender, _tokenId, tokenAmount, "");
         totalSupply[_tokenId] += 1;
         userBadges[msg.sender].push(badges[_tokenId]);
@@ -182,13 +155,5 @@ contract HenkakuBadge is ERC1155, Ownable {
         returns (string memory)
     {
         return badges[_tokenId].tokenURI;
-    }
-
-    function withdraw(address _token) public onlyOwner {
-        IERC20 _erc20 = IERC20(_token);
-        uint256 amount = _erc20.balanceOf(address(this));
-        require(amount > 0, "INVALID: AMOUNT NOT EXIST");
-        _erc20.transfer(fundsAddress, amount);
-        emit WithDraw(fundsAddress, _token, amount);
     }
 }
