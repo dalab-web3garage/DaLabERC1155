@@ -1,22 +1,21 @@
 import { ethers } from 'hardhat';
+import 'dotenv/config'
 
 const main = async () => {
-  const Badge = await ethers.getContractFactory('HenkakuBadge');
-  const henkakuToken = '0xd59FFEE93A55F67CeD0F56fa4A991d4c8c8f5C4E'
-  const badgeContract = await Badge.deploy(henkakuToken);
-  await badgeContract.deployed()
-  console.log('badge contract', badgeContract.address)
+  const DaLabfactoryErc1155 = await ethers.getContractFactory('DaLabERC1155');
+  const factoryErc1155 = await DaLabfactoryErc1155.deploy();
+  await factoryErc1155.deployed()
+  console.log('badge contract', factoryErc1155.address)
 
   const badgeArgs = {
     mintable: true,
     transferable: true,
-    amount: 0,
     maxSupply: 20,
-    tokenURI: 'https://omise.henkaku.org/metadata/dalabws1.json',
+    tokenURI: process.env.URL,
     maxMintPerWallet: 1,
   };
 
-  await badgeContract.createBadge(badgeArgs);
+  await factoryErc1155.createBadge(badgeArgs);
 }
 
 main().catch((error) => {
