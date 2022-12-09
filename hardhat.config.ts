@@ -38,9 +38,14 @@ export default {
       url: process.env.GOERLI_KEY || '',
       accounts: [process.env.PRIVATE_KEY],
     },
-    mainnet: {
+    polygon: {
       chainId: 137,
       url: process.env.PROD_ALCHEMY_KEY || '',
+      accounts: [process.env.PRIVATE_KEY]
+    },
+    mainnet: {
+      chaiId: 1,
+      url: process.env.PROD_ALCHEMY_KEY_ETH || '',
       accounts: [process.env.PRIVATE_KEY]
     }
   },
@@ -48,7 +53,8 @@ export default {
     apiKey: {
       rinkeby: process.env.ETHERSCAN_API_KEY || '',
       goerli: process.env.ETHERSCAN_API_KEY || '',
-      polygon: process.env.POLYGONSCAN_API_KEY || ''
+      mainnet: process.env.ETHERSCAN_API_KEY || '',
+      polygon: process.env.POLYGONSCAN_API_KEY || '',
     }
   }
 };
