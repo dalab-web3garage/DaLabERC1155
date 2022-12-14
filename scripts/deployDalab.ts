@@ -10,7 +10,7 @@ const main = async () => {
   const badgeArgs = {
     mintable: true,
     transferable: true,
-    maxSupply: 20,
+    maxSupply: 10,
     tokenURI: process.env.URL,
     maxMintPerWallet: 1,
   };

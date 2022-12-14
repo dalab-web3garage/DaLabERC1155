@@ -3,6 +3,7 @@ import "@nomiclabs/hardhat-waffle";
 import "hardhat-contract-sizer";
 import "@nomiclabs/hardhat-etherscan";
 import 'dotenv/config'
+import "hardhat-gas-reporter"
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -48,6 +49,10 @@ export default {
       url: process.env.PROD_ALCHEMY_KEY_ETH || '',
       accounts: [process.env.PRIVATE_KEY]
     }
+  },
+  gasReporter: {
+    enable: true,
+    currency: 'USD',
   },
   etherscan: {
     apiKey: {
