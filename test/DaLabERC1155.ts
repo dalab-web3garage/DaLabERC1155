@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
 
-describe("DaLabERC1155", function () {
+describe("DALabERC1155", function () {
   let badgeContract: Contract,
     owner: SignerWithAddress,
     alice: SignerWithAddress,
@@ -11,8 +11,8 @@ describe("DaLabERC1155", function () {
 
   beforeEach(async () => {
     [owner, alice, bob] = await ethers.getSigners();
-    const DaLabERC1155 = await ethers.getContractFactory("DaLabERC1155");
-    badgeContract = await DaLabERC1155.deploy();
+    const DALabERC1155 = await ethers.getContractFactory("DALabERC1155");
+    badgeContract = await DALabERC1155.deploy();
     await badgeContract.deployed();
   });
 

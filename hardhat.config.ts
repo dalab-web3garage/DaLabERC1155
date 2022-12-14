@@ -42,7 +42,8 @@ export default {
     polygon: {
       chainId: 137,
       url: process.env.PROD_ALCHEMY_KEY || '',
-      accounts: [process.env.PRIVATE_KEY]
+      accounts: [process.env.PRIVATE_KEY],
+      gasPrice: 70000000000
     },
     mainnet: {
       chaiId: 1,
