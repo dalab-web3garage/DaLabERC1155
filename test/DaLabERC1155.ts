@@ -59,6 +59,38 @@ describe("DaLabERC1155", function () {
     });
   });
 
+  describe("lockMinting", () => {
+    it("reverts if badge is locked", async () => {
+      const badgeArgs = {
+        mintable: true,
+        transferable: true,
+        maxSupply: 10,
+        tokenURI: "https://example.com",
+        maxMintPerWallet: 0,
+      };
+      await badgeContract.createBadge(badgeArgs);
+       await badgeContract.mint(1);
+      await badgeContract.lockMinting(1);
+      await expect(badgeContract.mint(1)).to.revertedWith(
+        "Invalid: NOT MINTABLE"
+      );
+    });
+
+    it("revert if user is not owner", async () => {
+      const badgeArgs = {
+        mintable: true,
+        transferable: true,
+        maxSupply: 10,
+        tokenURI: "https://example.com",
+        maxMintPerWallet: 0,
+      };
+      await badgeContract.createBadge(badgeArgs);
+      await expect(badgeContract.connect(bob).lockMinting(1)).to.revertedWith(
+        "Ownable: caller is not the owner"
+      );
+    })
+  })
+
   describe("updateBadge", () => {
     beforeEach(async () => {
       const badgeArgs = {
@@ -161,7 +193,6 @@ describe("DaLabERC1155", function () {
         maxMintPerWallet: 0,
       };
       await badgeContract.createBadge(badgeArgs);
-      expect((await badgeContract.getBadges()).length).to.be.eq(2);
       await badgeContract.mint(2);
       await expect(badgeContract.mint(2)).to.revertedWith(
         "Invalid: Exceed Supply"
@@ -178,7 +209,6 @@ describe("DaLabERC1155", function () {
       };
 
       await badgeContract.createBadge(badgeArgs);
-      expect((await badgeContract.getBadges()).length).to.be.eq(2);
       await badgeContract.mint(2);
       await expect(badgeContract.mint(2)).to.revertedWith(
         "Invalid: EXCEED MAX MINT PER WALLET"
@@ -193,7 +223,6 @@ describe("DaLabERC1155", function () {
         maxMintPerWallet: 4,
       };
       await badgeContract.createBadge(badgeArgs10);
-      expect((await badgeContract.getBadges()).length).to.be.eq(3);
       await badgeContract.mint(3);
       await badgeContract.mint(3);
       await badgeContract.mint(3);
@@ -214,7 +243,6 @@ describe("DaLabERC1155", function () {
       };
 
       await badgeContract.createBadge(badgeArgs);
-      expect((await badgeContract.getBadges()).length).to.be.eq(2);
       await badgeContract.mint(2);
       await badgeContract.mint(2);
       await badgeContract.mint(2);
@@ -325,7 +353,7 @@ describe("DaLabERC1155", function () {
       };
 
       await badgeContract.createBadge(badgeArgs);
-      expect((await badgeContract.getBadges()).length).to.be.eq(2);
+
       await badgeContract.mintByAdmin(2, alice.address);
       await expect(badgeContract.mintByAdmin(2, alice.address)).to.revertedWith(
         "Invalid: EXCEED MAX MINT PER WALLET"
@@ -343,7 +371,7 @@ describe("DaLabERC1155", function () {
       };
 
       await badgeContract.createBadge(badgeArgs);
-      expect((await badgeContract.getBadges()).length).to.be.eq(2);
+
       await badgeContract.mintByAdmin(2, alice.address);
       await badgeContract.mintByAdmin(2, alice.address);
       await badgeContract.mintByAdmin(2, alice.address);
@@ -375,89 +403,6 @@ describe("DaLabERC1155", function () {
       ]);
 
       expect(await badgeContract.totalSupply(1)).to.be.eq(0);
-    });
-  });
-
-  describe("getBadges", () => {
-    beforeEach(async () => {
-      const badgeArgs1 = {
-        mintable: true,
-        transferable: false,
-        maxSupply: 10,
-        tokenURI: "https://example1.com",
-        maxMintPerWallet: 0,
-      };
-      await badgeContract.createBadge(badgeArgs1);
-      const badgeArgs2 = {
-        mintable: true,
-        transferable: true,
-        maxSupply: 10,
-        tokenURI: "https://example2.com",
-        maxMintPerWallet: 0,
-      };
-      await badgeContract.createBadge(badgeArgs2);
-    });
-
-    it("returns badges array", async () => {
-      expect(await badgeContract.getBadges()).to.be.eql([
-        [
-          true,
-          false,
-          ethers.BigNumber.from(10),
-          "https://example1.com",
-          ethers.BigNumber.from(0),
-        ],
-        [
-          true,
-          true,
-          ethers.BigNumber.from(10),
-          "https://example2.com",
-          ethers.BigNumber.from(0),
-        ],
-      ]);
-    });
-  });
-
-  describe("badgeOf", () => {
-    beforeEach(async () => {
-      const badgeArgs = {
-        mintable: true,
-        transferable: false,
-        maxSupply: 10,
-        tokenURI: "https://example.com",
-        maxMintPerWallet: 0,
-      };
-      await badgeContract.createBadge(badgeArgs);
-      await badgeContract.mint(1);
-    });
-
-    it("returns minted badges", async () => {
-      expect(await badgeContract.badgesOf(owner.address)).to.be.eql([
-        [
-          true,
-          false,
-          ethers.BigNumber.from(10),
-          "https://example.com",
-          ethers.BigNumber.from(0),
-        ],
-      ]);
-    });
-
-    it("returns empty array without badges", async () => {
-      expect(await badgeContract.badgesOf(alice.address)).to.be.eql([]);
-    });
-
-    it("returns minted badges with mintByAdmin", async () => {
-      await badgeContract.mintByAdmin(1, alice.address);
-      expect(await badgeContract.badgesOf(alice.address)).to.be.eql([
-        [
-          true,
-          false,
-          ethers.BigNumber.from(10),
-          "https://example.com",
-          ethers.BigNumber.from(0),
-        ],
-      ]);
     });
   });
 

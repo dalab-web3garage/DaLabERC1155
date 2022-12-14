@@ -22,7 +22,6 @@ contract DaLabERC1155 is ERC1155, Ownable {
 
     mapping(uint256 => Badge) public badges;
     mapping(uint256 => uint256) public totalSupply;
-    mapping(address => Badge[]) private userBadges;
     event Mint(address indexed minter, uint256 indexed tokenId);
     event MintByAdmin(
         address indexed minter,
@@ -34,18 +33,6 @@ contract DaLabERC1155 is ERC1155, Ownable {
     event BurnBadge(uint256 indexed id, address indexed holder);
 
     constructor() ERC1155("") {}
-
-    function getBadges() public view returns (Badge[] memory) {
-        Badge[] memory badgeArray = new Badge[](_tokenIds.current());
-        for (uint256 i = 0; i < _tokenIds.current(); i++) {
-            badgeArray[i] = badges[i + 1];
-        }
-        return badgeArray;
-    }
-
-    function badgesOf(address _of) public view returns (Badge[] memory) {
-        return userBadges[_of];
-    }
 
     modifier onlyExistBadge(uint256 _tokenId) {
         require(
@@ -77,6 +64,11 @@ contract DaLabERC1155 is ERC1155, Ownable {
         _;
     }
 
+    modifier onlyMintable(uint256 _tokenId) {
+        require(badges[_tokenId].mintable, "Invalid: NOT MINTABLE");
+        _;
+    }
+
     function createBadge(Badge memory _badge) public onlyOwner {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
@@ -90,7 +82,7 @@ contract DaLabERC1155 is ERC1155, Ownable {
         bool _mintable,
         string memory _tokenURI
     ) public onlyOwner onlyExistBadge(_tokenId) {
-        bytes memory _uri = bytes (_tokenURI);
+        bytes memory _uri = bytes(_tokenURI);
         badges[_tokenId].mintable = _mintable;
         if (_uri.length > 1) {
             badges[_tokenId].tokenURI = _tokenURI;
@@ -98,15 +90,24 @@ contract DaLabERC1155 is ERC1155, Ownable {
         emit UpdateBadge(_tokenId, _mintable);
     }
 
+    function lockMinting(uint256 _tokenId)
+        public
+        onlyOwner
+        onlyExistBadge(_tokenId)
+    {
+        badges[_tokenId].mintable = false;
+        emit UpdateBadge(_tokenId, false);
+    }
+
     function mint(uint256 _tokenId)
         public
         onlyExistBadge(_tokenId)
         notExceedMaxSupply(_tokenId)
         onlyBelowMaxMintPerWallet(msg.sender, _tokenId)
+        onlyMintable(_tokenId)
     {
         _mint(msg.sender, _tokenId, tokenAmount, "");
         totalSupply[_tokenId] += 1;
-        userBadges[msg.sender].push(badges[_tokenId]);
         emit Mint(msg.sender, _tokenId);
     }
 
@@ -117,10 +118,10 @@ contract DaLabERC1155 is ERC1155, Ownable {
         onlyExistBadge(_tokenId)
         notExceedMaxSupply(_tokenId)
         onlyBelowMaxMintPerWallet(_to, _tokenId)
+        onlyMintable(_tokenId)
     {
         _mint(_to, _tokenId, tokenAmount, "");
         totalSupply[_tokenId] += 1;
-        userBadges[_to].push(badges[_tokenId]);
         emit MintByAdmin(msg.sender, _to, _tokenId);
     }
 
